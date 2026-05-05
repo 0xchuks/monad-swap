@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/swap/"
+title = "Monad Swap"
+version = "1.0.0"
+id = "artifacts/monad-swap"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/swap/" ]
+localPort = 19571
+
+[services.development]
+run = "pnpm --filter @workspace/monad-swap run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/monad-swap", "run", "build" ]
+publicDir = "artifacts/monad-swap/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19571"
+BASE_PATH = "/swap/"
