@@ -52,16 +52,18 @@ pnpm workspace monorepo with two web apps on Monad testnet: an NFT Deployer (ERC
 
 ## Deployed Contracts (Monad testnet, chain 10143)
 
-- **SimpleSwap AMM**: `0x0dc26a8dbbc4e5708c610870b49aad7fc005043d`
+- **SimpleSwap AMM**: `0x42943348f20a2ec53af2a981e09de7c4ea4566a4` (active, 1 MON + 10 USDC)
 - **USDC**: `0x534b2f3A21130d7a60830c2Df862319e593943A3` (6 decimals)
 - **Deployer wallet**: `0x43f83Bf1fA9409c565f43A770Eae765A22884371`
 
 ## Pool State
 
-The pool is initialized with 1 wei MON + 5 USDC. Reserves are badly imbalanced. To reseed with proper liquidity:
-1. Get more MON from faucet (https://faucet.monad.xyz or similar)
-2. Run: `SIMPLE_SWAP=0x0dc26a8... MON_AMOUNT=1.0 USDC_AMOUNT=10 pnpm --filter @workspace/scripts run seed-pool`
-   (Note: if `monReserve > 1 wei`, deploy a new SimpleSwap first)
+Pool is live and properly seeded: **1 MON + 10 USDC** (1 MON ≈ 10 USDC). Quotes verified on-chain.
+
+To add more liquidity in future (deploy a new SimpleSwap — `initPool` is one-time):
+```
+SIMPLE_SWAP=<new-address> MON_AMOUNT=1.0 USDC_AMOUNT=10 pnpm --filter @workspace/scripts run seed-pool
+```
 
 ## User Preferences
 

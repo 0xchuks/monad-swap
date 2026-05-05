@@ -18,5 +18,5 @@ export const TOKENS = {
 };
 
 export const CONTRACTS = {
-  SimpleSwap: '0x0dc26a8dbbc4e5708c610870b49aad7fc005043d' as Address,
+  SimpleSwap: '0x42943348f20a2ec53af2a981e09de7c4ea4566a4' as Address,
 };
