@@ -23,19 +23,35 @@ export function TokenInput({
   isConnected = false,
 }: TokenInputProps) {
   const formattedBalance = formatUnits(balanceRaw, decimals);
-  const displayBalance = parseFloat(formattedBalance).toLocaleString('en-US', {
-    maximumFractionDigits: symbol === 'MON' ? 4 : 2,
-  });
+  const numericBalance = parseFloat(formattedBalance);
+  const displayBalance = isConnected
+    ? numericBalance.toLocaleString('en-US', {
+        maximumFractionDigits: symbol === 'MON' ? 4 : 2,
+      })
+    : '--';
+
+  const handleMaxClick = () => {
+    if (!isConnected || readOnly || !onChange) return;
+    onChange(formattedBalance);
+  };
 
   return (
     <div className="bg-secondary/50 rounded-xl p-4 border border-border/50 hover:border-border transition-colors">
-      <div className="flex justify-between mb-2">
+      <div className="flex justify-between items-center mb-2">
         <span className="text-sm font-medium text-muted-foreground">{label}</span>
-        {isConnected && (
+        <div className="flex items-center gap-1.5">
           <span className="text-xs text-muted-foreground" data-testid={'text-balance-' + symbol}>
             Balance: {displayBalance} {symbol}
           </span>
-        )}
+          {isConnected && !readOnly && numericBalance > 0 && (
+            <button
+              onClick={handleMaxClick}
+              className="text-xs text-primary font-semibold hover:text-primary/80 transition-colors px-1.5 py-0.5 rounded bg-primary/10 hover:bg-primary/20"
+            >
+              MAX
+            </button>
+          )}
+        </div>
       </div>
       <div className="flex items-center justify-between gap-4">
         <Input
