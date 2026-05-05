@@ -1,5 +1,5 @@
 kind = "web"
-previewPath = "/swap/"
+previewPath = "/"
 title = "Monad Swap"
 version = "1.0.0"
 id = "artifacts/monad-swap"
@@ -11,7 +11,7 @@ version = "1.0.0"
 
 [[services]]
 name = "web"
-paths = [ "/swap/" ]
+paths = [ "/" ]
 localPort = 19571
 
 [services.development]
@@ -28,4 +28,4 @@ to = "/index.html"
 
 [services.env]
 PORT = "19571"
-BASE_PATH = "/swap/"
+BASE_PATH = "/"
