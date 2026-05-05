@@ -1,6 +1,7 @@
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
 import {
   rabbyWallet,
+  zerionWallet,
   metaMaskWallet,
   walletConnectWallet,
   coinbaseWallet,
@@ -14,7 +15,7 @@ const connectors = connectorsForWallets(
   [
     {
       groupName: 'Recommended',
-      wallets: [rabbyWallet, metaMaskWallet, walletConnectWallet, coinbaseWallet],
+      wallets: [rabbyWallet, zerionWallet, metaMaskWallet, walletConnectWallet, coinbaseWallet],
     },
     {
       groupName: 'More',
