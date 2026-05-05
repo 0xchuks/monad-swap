@@ -1,5 +1,5 @@
 import { useWriteContract, useAccount, useReadContract } from 'wagmi';
-import { parseUnits, type Address } from 'viem';
+import { parseUnits } from 'viem';
 import { V2_ROUTER_ABI, ERC20_ABI } from '../constants/abis';
 import { TOKENS, CONTRACTS } from '../constants/tokens';
 import { useState } from 'react';
@@ -17,17 +17,15 @@ export function useSwap(amountInStr: string, amountOutRaw: bigint, direction: Sw
     }
   } catch (e) {}
 
-  // Calculate amountOutMin with slippage
   const slippageMultiplier = 10000 - Math.floor(slippagePercent * 100);
   const amountOutMin = (amountOutRaw * BigInt(slippageMultiplier)) / 10000n;
   const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 20);
 
-  // For USDC -> MON we need approval
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: TOKENS.USDC.address,
     abi: ERC20_ABI,
     functionName: 'allowance',
-    args: [address as Address, CONTRACTS.UniswapV2Router02],
+    args: address ? [address, CONTRACTS.UniswapV2Router02] : undefined,
     query: {
       enabled: !!address && direction === 'USDC_TO_MON',
     }
@@ -35,23 +33,21 @@ export function useSwap(amountInStr: string, amountOutRaw: bigint, direction: Sw
 
   const needsApproval = direction === 'USDC_TO_MON' && (allowance ?? 0n) < amountIn;
 
-  const { writeContractAsync: writeApprove, isPending: isApprovePending } = useWriteContract();
-  const { writeContractAsync: writeSwap, isPending: isSwapPending } = useWriteContract();
+  const { writeContractAsync: writeApprove } = useWriteContract();
+  const { writeContractAsync: writeSwap } = useWriteContract();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const executeApprove = async () => {
     if (!address) return;
     setIsProcessing(true);
     try {
-      const tx = await writeApprove({
+      return await writeApprove({
         address: TOKENS.USDC.address,
         abi: ERC20_ABI,
         functionName: 'approve',
         args: [CONTRACTS.UniswapV2Router02, amountIn],
         gas: 60000n,
       });
-      // Need to wait for tx in the component or assume it's pending via hook
-      return tx;
     } finally {
       setIsProcessing(false);
     }
@@ -61,9 +57,8 @@ export function useSwap(amountInStr: string, amountOutRaw: bigint, direction: Sw
     if (!address) return;
     setIsProcessing(true);
     try {
-      let tx;
       if (direction === 'MON_TO_USDC') {
-        tx = await writeSwap({
+        return await writeSwap({
           address: CONTRACTS.UniswapV2Router02,
           abi: V2_ROUTER_ABI,
           functionName: 'swapExactETHForTokens',
@@ -72,7 +67,7 @@ export function useSwap(amountInStr: string, amountOutRaw: bigint, direction: Sw
           gas: 200000n,
         });
       } else {
-        tx = await writeSwap({
+        return await writeSwap({
           address: CONTRACTS.UniswapV2Router02,
           abi: V2_ROUTER_ABI,
           functionName: 'swapExactTokensForETH',
@@ -80,7 +75,6 @@ export function useSwap(amountInStr: string, amountOutRaw: bigint, direction: Sw
           gas: 200000n,
         });
       }
-      return tx;
     } finally {
       setIsProcessing(false);
     }
@@ -90,9 +84,7 @@ export function useSwap(amountInStr: string, amountOutRaw: bigint, direction: Sw
     needsApproval,
     executeApprove,
     executeSwap,
-    isApprovePending,
-    isSwapPending,
     isProcessing,
-    refetchAllowance
+    refetchAllowance,
   };
 }

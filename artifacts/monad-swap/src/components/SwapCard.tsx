@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useAccount, useBalance, useReadContract } from 'wagmi';
+import { useState } from 'react';
+import { useAccount } from 'wagmi';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { ArrowDownUp } from 'lucide-react';
 import { TokenInput } from './TokenInput';
@@ -7,8 +7,8 @@ import { SlippageSettings } from './SlippageSettings';
 import { useDebounce } from '../hooks/useDebounce';
 import { useSwapQuote } from '../hooks/useSwapQuote';
 import { useSwap } from '../hooks/useSwap';
+import { useWalletBalances } from '../hooks/useWalletBalances';
 import { TOKENS } from '../constants/tokens';
-import { ERC20_ABI } from '../constants/abis';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -23,34 +23,10 @@ export function SwapCard() {
 
   const debouncedAmountIn = useDebounce(amountIn, 300);
 
-  const { data: monBalance, refetch: refetchMon } = useBalance({
-    address: address,
-    query: {
-      enabled: !!address,
-      refetchInterval: 12000,
-    }
-  });
-
-  const { data: usdcBalanceRaw, refetch: refetchUsdc } = useReadContract({
-    address: TOKENS.USDC.address,
-    abi: ERC20_ABI,
-    functionName: 'balanceOf',
-    args: address ? [address] : undefined,
-    query: {
-      enabled: !!address,
-      refetchInterval: 12000,
-    }
-  });
-
-  useEffect(() => {
-    if (address) {
-      refetchMon();
-      refetchUsdc();
-    }
-  }, [address]);
-
-  const monBalanceRaw = monBalance?.value ?? 0n;
-  const usdcBalance = (usdcBalanceRaw as bigint | undefined) ?? 0n;
+  const { monBalance, usdcBalance, refetch: refetchBalances } = useWalletBalances(
+    address,
+    TOKENS.USDC.address
+  );
 
   const { amountOutStr, amountOutRaw, isPending: isQuotePending } = useSwapQuote(debouncedAmountIn, direction);
 
@@ -63,7 +39,7 @@ export function SwapCard() {
     executeApprove,
     executeSwap,
     isProcessing,
-    refetchAllowance
+    refetchAllowance,
   } = useSwap(debouncedAmountIn, amountOutRaw, direction, slippage);
 
   const handleSwapDirection = () => {
@@ -87,7 +63,7 @@ export function SwapCard() {
         if (tx) {
           toast({ title: 'Swap submitted', description: 'Tx hash: ' + tx });
           setAmountIn('');
-          setTimeout(() => { refetchMon(); refetchUsdc(); }, 5000);
+          setTimeout(() => refetchBalances(), 5000);
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown error';
@@ -121,8 +97,8 @@ export function SwapCard() {
   const inputToken = direction === 'MON_TO_USDC' ? TOKENS.MON : TOKENS.USDC;
   const outputToken = direction === 'MON_TO_USDC' ? TOKENS.USDC : TOKENS.MON;
 
-  const inputBalance = direction === 'MON_TO_USDC' ? monBalanceRaw : usdcBalance;
-  const outputBalance = direction === 'MON_TO_USDC' ? usdcBalance : monBalanceRaw;
+  const inputBalance = direction === 'MON_TO_USDC' ? monBalance : usdcBalance;
+  const outputBalance = direction === 'MON_TO_USDC' ? usdcBalance : monBalance;
 
   const rate = amountOutStr && debouncedAmountIn
     ? (Number(amountOutStr) / Number(debouncedAmountIn)).toFixed(6)
