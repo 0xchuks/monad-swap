@@ -198,7 +198,7 @@ export function SwapCard() {
 
       <CardFooter>
         {!isConnected ? (
-          <div className="w-full flex justify-center [&>div]:w-full [&>div>button]:w-full [&>div>button]:h-12 [&>div>button]:text-lg [&>div>button]:font-bold">
+          <div className="w-full flex justify-center [&>div]:w-full [&>div>button]:w-full [&>div>button]:h-12 [&>div>button]:text-lg [&>div>button]:font-bold [&>div>button]:justify-center">
             <ConnectButton showBalance={false} chainStatus="none" />
           </div>
         ) : (
