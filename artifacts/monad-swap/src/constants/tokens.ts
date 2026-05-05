@@ -11,14 +11,14 @@ export const TOKENS = {
   WMON: {
     symbol: 'WMON',
     name: 'Wrapped Monad',
-    address: '0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A' as Address,
+    address: '0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701' as Address,
     decimals: 18,
     isNative: false,
   },
   USDC: {
     symbol: 'USDC',
     name: 'USD Coin',
-    address: '0x754704Bc059F8C67012fEd69BC8A327a5aafb603' as Address,
+    address: '0xf817257fed379853cDe0fa4F97AB987181B1E5Ea' as Address,
     decimals: 6,
     isNative: false,
   }
