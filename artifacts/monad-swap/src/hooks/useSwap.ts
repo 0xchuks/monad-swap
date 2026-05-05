@@ -1,10 +1,14 @@
 import { useWriteContract, useAccount, useReadContract } from 'wagmi';
-import { parseUnits } from 'viem';
-import { V2_ROUTER_ABI, ERC20_ABI } from '../constants/abis';
+import { parseUnits, maxUint256 } from 'viem';
+import { SIMPLE_SWAP_ABI, ERC20_ABI } from '../constants/abis';
 import { TOKENS, CONTRACTS } from '../constants/tokens';
 import { useState } from 'react';
 
 type SwapDirection = 'MON_TO_USDC' | 'USDC_TO_MON';
+
+// Gas limits — Monad testnet requires much higher gas than standard EVM
+const GAS_SWAP = 5_000_000n;
+const GAS_APPROVE = 2_000_000n;
 
 export function useSwap(amountInStr: string, amountOutRaw: bigint, direction: SwapDirection, slippagePercent: number) {
   const { address } = useAccount();
@@ -15,17 +19,18 @@ export function useSwap(amountInStr: string, amountOutRaw: bigint, direction: Sw
     if (amountInStr && !isNaN(Number(amountInStr))) {
       amountIn = parseUnits(amountInStr, inputDecimals);
     }
-  } catch (e) {}
+  } catch (_e) {}
 
   const slippageMultiplier = 10000 - Math.floor(slippagePercent * 100);
-  const amountOutMin = (amountOutRaw * BigInt(slippageMultiplier)) / 10000n;
-  const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 20);
+  const amountOutMin = amountOutRaw > 0n
+    ? (amountOutRaw * BigInt(slippageMultiplier)) / 10000n
+    : 0n;
 
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
     address: TOKENS.USDC.address,
     abi: ERC20_ABI,
     functionName: 'allowance',
-    args: address ? [address, CONTRACTS.UniswapV2Router02] : undefined,
+    args: address ? [address, CONTRACTS.SimpleSwap] : undefined,
     query: {
       enabled: !!address && direction === 'USDC_TO_MON',
     }
@@ -34,7 +39,7 @@ export function useSwap(amountInStr: string, amountOutRaw: bigint, direction: Sw
   const needsApproval = direction === 'USDC_TO_MON' && (allowance ?? 0n) < amountIn;
 
   const { writeContractAsync: writeApprove } = useWriteContract();
-  const { writeContractAsync: writeSwap } = useWriteContract();
+  const { writeContractAsync: writeSwap }   = useWriteContract();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const executeApprove = async () => {
@@ -45,8 +50,8 @@ export function useSwap(amountInStr: string, amountOutRaw: bigint, direction: Sw
         address: TOKENS.USDC.address,
         abi: ERC20_ABI,
         functionName: 'approve',
-        args: [CONTRACTS.UniswapV2Router02, amountIn],
-        gas: 60000n,
+        args: [CONTRACTS.SimpleSwap, maxUint256],
+        gas: GAS_APPROVE,
       });
     } finally {
       setIsProcessing(false);
@@ -59,20 +64,20 @@ export function useSwap(amountInStr: string, amountOutRaw: bigint, direction: Sw
     try {
       if (direction === 'MON_TO_USDC') {
         return await writeSwap({
-          address: CONTRACTS.UniswapV2Router02,
-          abi: V2_ROUTER_ABI,
-          functionName: 'swapExactETHForTokens',
-          args: [amountOutMin, [TOKENS.WMON.address, TOKENS.USDC.address], address, deadline],
+          address: CONTRACTS.SimpleSwap,
+          abi: SIMPLE_SWAP_ABI,
+          functionName: 'swapMonForUsdc',
+          args: [amountOutMin],
           value: amountIn,
-          gas: 200000n,
+          gas: GAS_SWAP,
         });
       } else {
         return await writeSwap({
-          address: CONTRACTS.UniswapV2Router02,
-          abi: V2_ROUTER_ABI,
-          functionName: 'swapExactTokensForETH',
-          args: [amountIn, amountOutMin, [TOKENS.USDC.address, TOKENS.WMON.address], address, deadline],
-          gas: 200000n,
+          address: CONTRACTS.SimpleSwap,
+          abi: SIMPLE_SWAP_ABI,
+          functionName: 'swapUsdcForMon',
+          args: [amountIn, amountOutMin],
+          gas: GAS_SWAP,
         });
       }
     } finally {

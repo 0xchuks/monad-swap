@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAccount } from 'wagmi';
 import { parseUnits, formatUnits, encodeFunctionData, decodeFunctionResult } from 'viem';
-import type { Address } from 'viem';
-import { V2_ROUTER_ABI } from '../constants/abis';
+import { SIMPLE_SWAP_ABI } from '../constants/abis';
 import { TOKENS, CONTRACTS } from '../constants/tokens';
 
 const MONAD_TESTNET_RPC = 'https://testnet-rpc.monad.xyz';
@@ -16,17 +15,9 @@ async function rpcEthCall(to: string, data: string): Promise<string> {
     body: JSON.stringify({ jsonrpc: '2.0', id, method: 'eth_call', params: [{ to, data }, 'latest'] }),
   });
   if (!res.ok) throw new Error('RPC HTTP ' + res.status);
-  const json = await res.json() as { result?: string; error?: { message: string; data?: string } };
-  if (json.error) {
-    const msg = json.error.message ?? 'Unknown RPC error';
-    if (msg.includes('INSUFFICIENT_LIQUIDITY') || msg.includes('INVALID_PATH')) {
-      throw new Error('No liquidity for this pair');
-    }
-    throw new Error(msg);
-  }
-  if (!json.result || json.result === '0x') {
-    throw new Error('No liquidity for this pair');
-  }
+  const json = await res.json() as { result?: string; error?: { message: string } };
+  if (json.error) throw new Error(json.error.message ?? 'RPC error');
+  if (!json.result || json.result === '0x') throw new Error('Pool has no liquidity yet');
   return json.result;
 }
 
@@ -39,12 +30,9 @@ export function useSwapQuote(amountInStr: string, direction: SwapDirection) {
   const [isPending, setIsPending] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
 
-  const inputDecimals = direction === 'MON_TO_USDC' ? TOKENS.MON.decimals : TOKENS.USDC.decimals;
+  const inputDecimals  = direction === 'MON_TO_USDC' ? TOKENS.MON.decimals  : TOKENS.USDC.decimals;
   const outputDecimals = direction === 'MON_TO_USDC' ? TOKENS.USDC.decimals : TOKENS.MON.decimals;
-
-  const path: Address[] = direction === 'MON_TO_USDC'
-    ? [TOKENS.WMON.address, TOKENS.USDC.address]
-    : [TOKENS.USDC.address, TOKENS.WMON.address];
+  const monToUsdc      = direction === 'MON_TO_USDC';
 
   const fetchQuote = useCallback(async () => {
     if (!amountInStr || amountInStr === '0' || !isConnected) {
@@ -68,24 +56,22 @@ export function useSwapQuote(amountInStr: string, direction: SwapDirection) {
 
     try {
       const data = encodeFunctionData({
-        abi: V2_ROUTER_ABI,
-        functionName: 'getAmountsOut',
-        args: [amountIn, path],
+        abi: SIMPLE_SWAP_ABI,
+        functionName: 'getAmountOut',
+        args: [amountIn, monToUsdc],
       });
 
-      const result = await rpcEthCall(CONTRACTS.UniswapV2Router02, data);
+      const result = await rpcEthCall(CONTRACTS.SimpleSwap, data);
 
-      const decoded = decodeFunctionResult({
-        abi: V2_ROUTER_ABI,
-        functionName: 'getAmountsOut',
+      const out = decodeFunctionResult({
+        abi: SIMPLE_SWAP_ABI,
+        functionName: 'getAmountOut',
         data: result as `0x${string}`,
-      });
+      }) as bigint;
 
-      const out = decoded[1];
       setAmountOutRaw(out);
       setAmountOutStr(formatUnits(out, outputDecimals));
       setQuoteError(null);
-      console.log('[quote] amountOut:', out.toString());
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Quote failed';
       console.error('[quote] error:', msg);
@@ -95,7 +81,7 @@ export function useSwapQuote(amountInStr: string, direction: SwapDirection) {
     } finally {
       setIsPending(false);
     }
-  }, [amountInStr, direction, isConnected, inputDecimals, outputDecimals]);
+  }, [amountInStr, direction, isConnected, inputDecimals, outputDecimals, monToUsdc]);
 
   useEffect(() => {
     fetchQuote();

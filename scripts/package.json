@@ -7,6 +7,7 @@
     "hello": "tsx ./src/hello.ts",
     "deploy-uniswap-v2": "tsx ./src/deploy-uniswap-v2.ts",
     "add-liquidity": "tsx ./src/add-liquidity.ts",
+    "seed-pool": "tsx ./src/seed-pool.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "devDependencies": {
@@ -16,6 +17,7 @@
   "dependencies": {
     "@uniswap/v2-core": "1.0.1",
     "@uniswap/v2-periphery": "1.1.0-beta.0",
+    "solc": "^0.8.35",
     "viem": "^2.48.8"
   }
 }

@@ -40,16 +40,17 @@ const ROUTER_ABI = [
   },
 ] as const;
 
-const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
+const rawKey = process.env.DEPLOYER_PRIVATE_KEY;
 const routerAddress = process.env.ROUTER_ADDRESS;
 const usdcAddress = process.env.USDC_ADDRESS ?? "0x534b2f3A21130d7a60830c2Df862319e593943A3";
 const monAmountEth = process.env.MON_AMOUNT ?? "1";
 const usdcAmount = process.env.USDC_AMOUNT ?? "3";
 
-if (!privateKey || !routerAddress) {
+if (!rawKey || !routerAddress) {
   console.error("❌  Required: DEPLOYER_PRIVATE_KEY and ROUTER_ADDRESS env vars");
   process.exit(1);
 }
+const privateKey = rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`;
 
 const account = privateKeyToAccount(privateKey as `0x${string}`);
 

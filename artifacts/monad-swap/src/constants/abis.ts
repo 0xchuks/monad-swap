@@ -1,38 +1,58 @@
-export const V2_ROUTER_ABI = [
+export const SIMPLE_SWAP_ABI = [
   {
-    name: 'getAmountsOut',
+    name: 'getAmountOut',
     type: 'function',
     stateMutability: 'view',
     inputs: [
       { name: 'amountIn', type: 'uint256' },
-      { name: 'path', type: 'address[]' }
+      { name: 'monToUsdc', type: 'bool' }
     ],
-    outputs: [{ name: 'amounts', type: 'uint256[]' }]
+    outputs: [{ name: '', type: 'uint256' }]
   },
   {
-    name: 'swapExactETHForTokens',
+    name: 'swapMonForUsdc',
     type: 'function',
     stateMutability: 'payable',
-    inputs: [
-      { name: 'amountOutMin', type: 'uint256' },
-      { name: 'path', type: 'address[]' },
-      { name: 'to', type: 'address' },
-      { name: 'deadline', type: 'uint256' }
-    ],
-    outputs: [{ name: 'amounts', type: 'uint256[]' }]
+    inputs: [{ name: 'minUsdcOut', type: 'uint256' }],
+    outputs: []
   },
   {
-    name: 'swapExactTokensForETH',
+    name: 'swapUsdcForMon',
     type: 'function',
     stateMutability: 'nonpayable',
     inputs: [
-      { name: 'amountIn', type: 'uint256' },
-      { name: 'amountOutMin', type: 'uint256' },
-      { name: 'path', type: 'address[]' },
-      { name: 'to', type: 'address' },
-      { name: 'deadline', type: 'uint256' }
+      { name: 'usdcIn', type: 'uint256' },
+      { name: 'minMonOut', type: 'uint256' }
     ],
-    outputs: [{ name: 'amounts', type: 'uint256[]' }]
+    outputs: []
+  },
+  {
+    name: 'monReserve',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }]
+  },
+  {
+    name: 'usdcReserve',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }]
+  },
+  {
+    name: 'addLiquidity',
+    type: 'function',
+    stateMutability: 'payable',
+    inputs: [{ name: 'usdcAmount', type: 'uint256' }],
+    outputs: []
+  },
+  {
+    name: 'owner',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'address' }]
   }
 ] as const;
 
@@ -57,5 +77,12 @@ export const ERC20_ABI = [
     stateMutability: 'view',
     inputs: [{ name: 'account', type: 'address' }],
     outputs: [{ name: '', type: 'uint256' }]
+  },
+  {
+    name: 'decimals',
+    type: 'function',
+    stateMutability: 'view',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint8' }]
   }
 ] as const;

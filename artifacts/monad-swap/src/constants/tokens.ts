@@ -8,13 +8,6 @@ export const TOKENS = {
     decimals: 18,
     isNative: true,
   },
-  WMON: {
-    symbol: 'WMON',
-    name: 'Wrapped Monad',
-    address: '0x0cf66fbda2f6be4416aedbc76ebb69de8fd0259f' as Address,
-    decimals: 18,
-    isNative: false,
-  },
   USDC: {
     symbol: 'USDC',
     name: 'USD Coin',
@@ -25,5 +18,5 @@ export const TOKENS = {
 };
 
 export const CONTRACTS = {
-  UniswapV2Router02: '0x118519b46d86a04cec10ff8e7ac90a7c69b712bb' as Address,
+  SimpleSwap: '0x0dc26a8dbbc4e5708c610870b49aad7fc005043d' as Address,
 };
