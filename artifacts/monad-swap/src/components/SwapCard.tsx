@@ -36,11 +36,16 @@ export function SwapCard() {
     TOKENS.USDC.address
   );
 
-  const { amountOutStr, amountOutRaw, isPending: isQuotePending } = useSwapQuote(debouncedAmountIn, direction);
+  const { amountOutStr, amountOutRaw, isPending: isQuotePending, quoteError } = useSwapQuote(debouncedAmountIn, direction);
 
-  const displayAmountOut = (debouncedAmountIn === '' || debouncedAmountIn === '0')
+  const hasAmount = debouncedAmountIn !== '' && debouncedAmountIn !== '0';
+  const displayAmountOut = !hasAmount
     ? '--'
-    : (isQuotePending ? 'Fetching...' : amountOutStr);
+    : isQuotePending
+      ? 'Fetching...'
+      : quoteError
+        ? 'No route'
+        : amountOutStr || '--';
 
   const {
     needsApproval,
@@ -87,6 +92,12 @@ export function SwapCard() {
   if (isConnected) {
     if (!amountIn || amountIn === '0') {
       buttonText = 'Enter an amount';
+      buttonDisabled = true;
+    } else if (isQuotePending) {
+      buttonText = 'Fetching quote...';
+      buttonDisabled = true;
+    } else if (quoteError) {
+      buttonText = 'No liquidity for this pair';
       buttonDisabled = true;
     } else if (isProcessing) {
       buttonText = needsApproval ? 'Approving...' : 'Swapping...';
