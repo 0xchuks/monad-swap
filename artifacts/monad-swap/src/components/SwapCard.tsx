@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { formatUnits } from 'viem';
-import { WalletPicker } from './WalletPicker';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { ArrowDownUp, Wallet } from 'lucide-react';
 import { TokenInput } from './TokenInput';
 import { SlippageSettings } from './SlippageSettings';
@@ -198,7 +198,9 @@ export function SwapCard() {
 
       <CardFooter>
         {!isConnected ? (
-          <WalletPicker />
+          <div className="w-full flex justify-center [&>div]:w-full [&>div>button]:w-full [&>div>button]:h-12 [&>div>button]:text-lg [&>div>button]:font-bold">
+            <ConnectButton showBalance={false} chainStatus="none" />
+          </div>
         ) : (
           <Button
             className="w-full h-12 text-lg font-bold"
