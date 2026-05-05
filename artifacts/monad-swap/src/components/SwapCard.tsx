@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAccount, useBalance, useReadContract } from 'wagmi';
-import type { Address } from 'viem';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { ArrowDownUp } from 'lucide-react';
 import { TokenInput } from './TokenInput';
@@ -24,21 +23,34 @@ export function SwapCard() {
 
   const debouncedAmountIn = useDebounce(amountIn, 300);
 
-  const { data: monBalance } = useBalance({
-    address,
-    query: { enabled: !!address }
+  const { data: monBalance, refetch: refetchMon } = useBalance({
+    address: address,
+    query: {
+      enabled: !!address,
+      refetchInterval: 12000,
+    }
   });
 
-  const { data: usdcBalanceRaw } = useReadContract({
+  const { data: usdcBalanceRaw, refetch: refetchUsdc } = useReadContract({
     address: TOKENS.USDC.address,
     abi: ERC20_ABI,
     functionName: 'balanceOf',
-    args: [address as Address],
-    query: { enabled: !!address }
+    args: address ? [address] : undefined,
+    query: {
+      enabled: !!address,
+      refetchInterval: 12000,
+    }
   });
 
+  useEffect(() => {
+    if (address) {
+      refetchMon();
+      refetchUsdc();
+    }
+  }, [address]);
+
   const monBalanceRaw = monBalance?.value ?? 0n;
-  const usdcBalance = usdcBalanceRaw ?? 0n;
+  const usdcBalance = (usdcBalanceRaw as bigint | undefined) ?? 0n;
 
   const { amountOutStr, amountOutRaw, isPending: isQuotePending } = useSwapQuote(debouncedAmountIn, direction);
 
@@ -75,6 +87,7 @@ export function SwapCard() {
         if (tx) {
           toast({ title: 'Swap submitted', description: 'Tx hash: ' + tx });
           setAmountIn('');
+          setTimeout(() => { refetchMon(); refetchUsdc(); }, 5000);
         }
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : 'Unknown error';
@@ -132,6 +145,7 @@ export function SwapCard() {
           symbol={inputToken.symbol}
           balanceRaw={inputBalance}
           decimals={inputToken.decimals}
+          isConnected={isConnected}
         />
 
         <div className="flex justify-center -my-3 relative z-10">
@@ -152,6 +166,7 @@ export function SwapCard() {
           symbol={outputToken.symbol}
           balanceRaw={outputBalance}
           decimals={outputToken.decimals}
+          isConnected={isConnected}
           readOnly
         />
 

@@ -9,21 +9,33 @@ interface TokenInputProps {
   balanceRaw: bigint;
   decimals: number;
   readOnly?: boolean;
+  isConnected?: boolean;
 }
 
-export function TokenInput({ label, value, onChange, symbol, balanceRaw, decimals, readOnly = false }: TokenInputProps) {
+export function TokenInput({
+  label,
+  value,
+  onChange,
+  symbol,
+  balanceRaw,
+  decimals,
+  readOnly = false,
+  isConnected = false,
+}: TokenInputProps) {
   const formattedBalance = formatUnits(balanceRaw, decimals);
   const displayBalance = parseFloat(formattedBalance).toLocaleString('en-US', {
-    maximumFractionDigits: symbol === 'MON' ? 4 : 2
+    maximumFractionDigits: symbol === 'MON' ? 4 : 2,
   });
 
   return (
     <div className="bg-secondary/50 rounded-xl p-4 border border-border/50 hover:border-border transition-colors">
       <div className="flex justify-between mb-2">
         <span className="text-sm font-medium text-muted-foreground">{label}</span>
-        <span className="text-xs text-muted-foreground" data-testid={'text-balance-' + symbol}>
-          Balance: {displayBalance} {symbol}
-        </span>
+        {isConnected && (
+          <span className="text-xs text-muted-foreground" data-testid={'text-balance-' + symbol}>
+            Balance: {displayBalance} {symbol}
+          </span>
+        )}
       </div>
       <div className="flex items-center justify-between gap-4">
         <Input
