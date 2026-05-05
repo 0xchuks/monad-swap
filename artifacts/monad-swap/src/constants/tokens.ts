@@ -11,7 +11,7 @@ export const TOKENS = {
   WMON: {
     symbol: 'WMON',
     name: 'Wrapped Monad',
-    address: '0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701' as Address,
+    address: '0x0cf66fbda2f6be4416aedbc76ebb69de8fd0259f' as Address,
     decimals: 18,
     isNative: false,
   },
@@ -25,5 +25,5 @@ export const TOKENS = {
 };
 
 export const CONTRACTS = {
-  UniswapV2Router02: '0x4b2ab38dbf28d31d467aa8993f6c2585981d6804' as Address,
+  UniswapV2Router02: '0x118519b46d86a04cec10ff8e7ac90a7c69b712bb' as Address,
 };

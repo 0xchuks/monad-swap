@@ -20,11 +20,12 @@ const monadTestnet = defineChain({
   rpcUrls: { default: { http: ["https://testnet-rpc.monad.xyz"] } },
 });
 
-const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
-if (!privateKey) {
+const rawKey = process.env.DEPLOYER_PRIVATE_KEY;
+if (!rawKey) {
   console.error("❌  DEPLOYER_PRIVATE_KEY env var not set");
   process.exit(1);
 }
+const privateKey = rawKey.startsWith("0x") ? rawKey : `0x${rawKey}`;
 
 const account = privateKeyToAccount(privateKey as `0x${string}`);
 
@@ -45,7 +46,7 @@ async function deploy(name: string, bytecode: `0x${string}`, args?: `0x${string}
   const hash = await walletClient.sendTransaction({
     data,
     gas: 5_000_000n,
-    gasPrice: parseGwei("52"),
+    gasPrice: parseGwei("110"),
   });
   console.log(`   tx: ${hash}`);
   const receipt = await publicClient.waitForTransactionReceipt({ hash });

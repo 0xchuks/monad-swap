@@ -95,7 +95,7 @@ async function main() {
       args: [routerAddress as `0x${string}`, usdcAmountWei],
     }),
     gas: 100_000n,
-    gasPrice: parseGwei("52"),
+    gasPrice: parseGwei("110"),
   });
   await publicClient.waitForTransactionReceipt({ hash: approveTx });
   console.log(`   ✅  Approved: ${approveTx}`);
@@ -119,7 +119,7 @@ async function main() {
       ],
     }),
     gas: 500_000n,
-    gasPrice: parseGwei("52"),
+    gasPrice: parseGwei("110"),
   });
   const receipt = await publicClient.waitForTransactionReceipt({ hash: liquidityTx });
   console.log(`   ✅  Liquidity added! tx: ${liquidityTx}`);
