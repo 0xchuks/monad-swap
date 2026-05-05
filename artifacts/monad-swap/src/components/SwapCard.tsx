@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
+import { formatUnits } from 'viem';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { ArrowDownUp } from 'lucide-react';
+import { ArrowDownUp, Wallet } from 'lucide-react';
 import { TokenInput } from './TokenInput';
 import { SlippageSettings } from './SlippageSettings';
 import { useDebounce } from '../hooks/useDebounce';
@@ -12,6 +13,13 @@ import { TOKENS } from '../constants/tokens';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+
+function fmt(raw: bigint, decimals: number, maxFrac: number) {
+  return parseFloat(formatUnits(raw, decimals)).toLocaleString('en-US', {
+    maximumFractionDigits: maxFrac,
+    minimumFractionDigits: 0,
+  });
+}
 
 export function SwapCard() {
   const { address, isConnected } = useAccount();
@@ -96,7 +104,6 @@ export function SwapCard() {
 
   const inputToken = direction === 'MON_TO_USDC' ? TOKENS.MON : TOKENS.USDC;
   const outputToken = direction === 'MON_TO_USDC' ? TOKENS.USDC : TOKENS.MON;
-
   const inputBalance = direction === 'MON_TO_USDC' ? monBalance : usdcBalance;
   const outputBalance = direction === 'MON_TO_USDC' ? usdcBalance : monBalance;
 
@@ -109,11 +116,35 @@ export function SwapCard() {
 
   return (
     <Card className="w-full max-w-md mx-auto shadow-2xl border-border bg-card/90 backdrop-blur-xl">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-xl font-bold tracking-tight">Swap</CardTitle>
         <SlippageSettings slippage={slippage} setSlippage={setSlippage} />
       </CardHeader>
-      <CardContent className="space-y-2">
+
+      {/* Wallet balance strip */}
+      <div className="mx-6 mb-3 px-3 py-2 rounded-lg bg-muted/40 border border-border/40 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Wallet className="h-3 w-3" />
+          <span>Balances</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="text-xs">
+            <span className="text-muted-foreground">MON </span>
+            <span className="font-semibold text-foreground" data-testid="balance-mon">
+              {isConnected ? fmt(monBalance, 18, 4) : '--'}
+            </span>
+          </div>
+          <div className="w-px h-3 bg-border" />
+          <div className="text-xs">
+            <span className="text-muted-foreground">USDC </span>
+            <span className="font-semibold text-foreground" data-testid="balance-usdc">
+              {isConnected ? fmt(usdcBalance, 6, 2) : '--'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <CardContent className="space-y-2 pt-0">
         <TokenInput
           label="You pay"
           value={amountIn}
@@ -153,6 +184,7 @@ export function SwapCard() {
           </div>
         )}
       </CardContent>
+
       <CardFooter>
         {!isConnected ? (
           <div className="w-full flex justify-center [&>div]:w-full [&>div>button]:w-full [&>div>button]:h-12 [&>div>button]:text-lg [&>div>button]:font-bold">
